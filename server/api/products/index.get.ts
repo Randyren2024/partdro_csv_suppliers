@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     .order('name_en', { ascending: true, nullsFirst: false })
 
   if (typeof query.q === 'string' && query.q.trim()) {
-    const term = query.q.trim().slice(0, 80).replace(/[(),.%_*]/g, ' ').replace(/\s+/g, ' ')
+    const term = query.q.trim().slice(0, 80).replace(/[^\\p{L}\\p{N}\\s_-]/gu, ' ').replace(/\s+/g, ' ')
     request = request.or(`name.ilike.%${term}%,name_en.ilike.%${term}%,model.ilike.%${term}%,brand.ilike.%${term}%`)
   }
   if (typeof query.category === 'string' && query.category) {
