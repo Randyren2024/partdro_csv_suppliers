@@ -13,15 +13,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm install --package-lock-only
-      - run: npm ci
-      - run: npm run build
+      - run: npm install --include=optional --no-audit --no-fund
+      - name: Build Nuxt for Cloudflare Pages
+        run: npm run build
         env:
+          NITRO_PRESET: cloudflare_pages
           NUXT_PUBLIC_SUPABASE_URL: ${{ secrets.NUXT_PUBLIC_SUPABASE_URL }}
           NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      - name: Verify Pages worker output
+        run: |
+          test -s dist/index.html
+          test -s dist/_worker.js
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .output/public --project-name=partdro-products
+          command: pages deploy dist --project-name=partdro-products --branch=main
