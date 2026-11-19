@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   if (error) throw createError({ statusCode: 502, statusMessage: 'Unable to load products' })
 
   return {
-    items: (data || []).map(withPublicProductSlug),
+    items: (data || []).map((item: any) => withPublicProductSlug(item)),
     total: count || 0,
     page,
     pageSize,
