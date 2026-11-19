@@ -21,7 +21,6 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    preset: 'cloudflare_pages',
     compressPublicAssets: true
   },
   typescript: { strict: true, typeCheck: true }
