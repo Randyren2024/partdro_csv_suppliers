@@ -1,16 +1,19 @@
 import { getSupabase } from '../../utils/supabase'
+import { PUBLIC_PRODUCT_FIELDS, withPublicProductSlug } from '../../utils/product'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = Math.max(1, Number(query.page) || 1)
   const pageSize = Math.min(48, Math.max(1, Number(query.limit) || 24))
   const db = getSupabase(event)
-  let request = db.from('catalogue_products')
-    .select('id,slug,name,name_en,model,brand,category,product_type,summary,description,specifications,features,applications,media,supplier_id', { count: 'exact' })
+
+  let request = db.from('products')
+    .select(PUBLIC_PRODUCT_FIELDS, { count: 'exact' })
+    .eq('status', 'published')
     .order('name_en', { ascending: true, nullsFirst: false })
 
   if (typeof query.q === 'string' && query.q.trim()) {
-    const term = query.q.trim().slice(0, 80).replace(/[^\\p{L}\\p{N}\\s_-]/gu, ' ').replace(/\s+/g, ' ')
+    const term = query.q.trim().slice(0, 80).replace(/[,%()]/g, ' ').replace(/\s+/g, ' ')
     request = request.or(`name.ilike.%${term}%,name_en.ilike.%${term}%,model.ilike.%${term}%,brand.ilike.%${term}%`)
   }
   if (typeof query.category === 'string' && query.category) {
@@ -19,5 +22,11 @@ export default defineEventHandler(async (event) => {
 
   const { data, error, count } = await request.range((page - 1) * pageSize, page * pageSize - 1)
   if (error) throw createError({ statusCode: 502, statusMessage: 'Unable to load products' })
-  return { items: data || [], total: count || 0, page, pageSize }
+
+  return {
+    items: (data || []).map(withPublicProductSlug),
+    total: count || 0,
+    page,
+    pageSize,
+  }
 })
