@@ -30,10 +30,18 @@ create view public.catalogue_products
 with (security_invoker = true, security_barrier = true)
 as
 select
-  id, slug, name, name_en, model, brand, category, product_type,
+  id,
+  coalesce(
+    nullif(slug, ''),
+    coalesce(
+      nullif(trim(both '-' from lower(regexp_replace(coalesce(name_en, name), '[^a-zA-Z0-9]+', '-', 'g'))), ''),
+      'product'
+    ) || '-' || left(replace(id::text, '-', ''), 8)
+  ) as slug,
+  name, name_en, model, brand, category, product_type,
   summary, description, specifications, features, applications, media, supplier_id
 from public.products
-where status = 'published' and slug is not null;
+where status = 'published';
 
 create view public.catalogue_suppliers
 with (security_invoker = true, security_barrier = true)
