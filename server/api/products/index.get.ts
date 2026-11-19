@@ -5,11 +5,9 @@ export default defineEventHandler(async (event) => {
   const page = Math.max(1, Number(query.page) || 1)
   const pageSize = Math.min(48, Math.max(1, Number(query.limit) || 24))
   const db = getSupabase(event)
-  let request = db.from('products')
+  let request = db.from('catalogue_products')
     .select('id,slug,name,name_en,model,brand,category,product_type,summary,description,specifications,features,applications,media,supplier_id', { count: 'exact' })
-    .eq('status', 'published')
-    .not('slug', 'is', null)
-    .order('updated_at', { ascending: false })
+    .order('name_en', { ascending: true, nullsFirst: false })
 
   if (typeof query.q === 'string' && query.q.trim()) {
     const term = query.q.trim().slice(0, 80).replace(/[(),.%_*]/g, ' ').replace(/\s+/g, ' ')
