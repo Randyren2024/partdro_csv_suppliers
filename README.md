@@ -23,12 +23,14 @@ Set these public runtime variables in `.env`:
 
 ## Data model
 
-The application reads the public catalogue views:
+The application reads the base tables through Nuxt server API routes; it does not depend on the optional `catalogue_products` or `catalogue_suppliers` views.
 
-- `catalogue_products`: published products only
-- `catalogue_suppliers`: listed/verified suppliers only
+- `products`: published supplier product records, filtered by the `status = 'published'` RLS policy.
+- `suppliers`: listed or verified supplier records.
+- `supplier_profiles`: public supplier profile fields joined by `supplier_id`.
+- `products.supplier_id` references `suppliers.id`; supplier profiles reference the same supplier key.
 
-The migration in `supabase/migrations` documents the RLS policies, column-level grants and invoker-security views. Internal supplier notes, contact details, source records and product verification metadata are not exposed to anonymous visitors.
+The server routes use only the public publishable key and explicit public-column projections. Row-level security and column-level grants remain enforced by Supabase. Internal supplier notes, contact details, source records and product verification metadata are not returned to anonymous visitors. Never put a Supabase service-role key in client-side code or public environment variables.
 
 ## Deployment
 
@@ -41,5 +43,3 @@ Cloudflare Pages project: `partdro-products`
 - Production deployments: enabled on `main`
 
 Cloudflare Pages is connected directly to this GitHub repository, so no Cloudflare API token is needed in GitHub Actions.
-
-Never put a Supabase service-role key in client-side code or public environment variables.
