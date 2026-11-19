@@ -1,5 +1,9 @@
 -- Public read access for the storefront. Internal supplier research notes and
 -- contact fields are deliberately excluded from the public view.
+drop policy if exists "Public can read published products" on public.products;
+drop policy if exists "Public can read listed suppliers" on public.suppliers;
+drop policy if exists "Public can read profiles for listed suppliers" on public.supplier_profiles;
+
 create policy "Public can read published products"
 on public.products for select to anon, authenticated
 using (status = 'published');
@@ -24,7 +28,11 @@ as
 select
   s.id, s.name, s.name_en, s.region, s.province, s.city, s.district,
   s.segment, s.category, s.category_label, s.product_models, s.website,
-  p.slug, p.address, p.founded_year,
+  coalesce(
+    p.slug,
+    lower(regexp_replace(coalesce(s.name_en, s.name), '[^a-zA-Z0-9]+', '-', 'g')) || '-' || s.id
+  ) as slug,
+  p.address, p.founded_year,
   jsonb_strip_nulls(jsonb_build_object(
     'displayName', p.profile_data -> 'displayName',
     'description', p.profile_data -> 'description',
@@ -39,6 +47,4 @@ from public.suppliers s
 left join public.supplier_profiles p on p.supplier_id = s.id
 where s.status in ('listed', 'verified');
 
-grant select on public.products to anon, authenticated;
-grant select on public.suppliers to anon, authenticated;
-grant select on public.catalogue_suppliers to anon, authenticated;
+grant select on public.products, public.suppliers, public.supplier_profiles, public.catalogue_suppliers to anon, authenticated;
