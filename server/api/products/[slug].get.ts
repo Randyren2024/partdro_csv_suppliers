@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   if (productError) throw createError({ statusCode: 502, statusMessage: 'Unable to load product' })
 
-  let product = exactProduct
+  let product: any = exactProduct
   if (!product) {
     // A small number of published legacy records have no stored slug.
     // Match the same deterministic fallback used by the listing endpoint.
@@ -22,7 +22,9 @@ export default defineEventHandler(async (event) => {
       .select(PUBLIC_PRODUCT_FIELDS)
       .eq('status', 'published')
     if (candidatesError) throw createError({ statusCode: 502, statusMessage: 'Unable to load product' })
-    product = (candidates || []).map(withPublicProductSlug).find((item: any) => item.slug === slug) || null
+    product = (candidates || [])
+      .map((item: any) => withPublicProductSlug(item))
+      .find((item: any) => item.slug === slug) || null
   }
 
   if (!product) throw createError({ statusCode: 404, statusMessage: 'Product not found' })
