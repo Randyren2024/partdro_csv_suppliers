@@ -37,6 +37,6 @@ export default defineEventHandler(async (event) => {
     slug: profile.slug,
     address: profile.address,
     founded_year: profile.founded_year,
-    products: (products || []).map(withPublicProductSlug),
+    products: (products || []).map((item: any) => withPublicProductSlug(item)),
   }
 })
