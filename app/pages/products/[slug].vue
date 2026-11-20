@@ -90,7 +90,7 @@ watch(media, () => { selectedImage.value = 0 })
         <div class="detail-panel product-overview-panel">
           <div class="detail-section-heading">
             <span class="eyebrow">Product overview</span>
-            <h2>Built for long-range professional missions</h2>
+            <h2>Product overview</h2>
           </div>
           <p class="product-description">{{ product?.description || product?.summary || 'Product information is being prepared.' }}</p>
           <div v-if="product?.features?.length" class="product-subsection">
